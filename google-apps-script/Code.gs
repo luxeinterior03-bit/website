@@ -11,12 +11,10 @@ function doGet(event) {
 }
 
 function doPost(event) {
-  let requestId = "";
   try {
     const fields = event.parameter || {};
-    requestId = cleanLine(fields.requestId, 100);
     if (fields.website) {
-      return responsePage(false, requestId);
+      return responsePage(false);
     }
 
     const name = cleanLine(fields.name, 120);
@@ -28,7 +26,7 @@ function doPost(event) {
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
       brief.length < 10
     ) {
-      return responsePage(false, requestId);
+      return responsePage(false);
     }
 
     const cache = CacheService.getScriptCache();
@@ -40,7 +38,7 @@ function doPost(event) {
       .join("");
     const cacheKey = `inquiry:${emailDigest}`;
     if (cache.get(cacheKey)) {
-      return responsePage(false, requestId);
+      return responsePage(false);
     }
 
     MailApp.sendEmail({
@@ -52,10 +50,10 @@ function doPost(event) {
     });
 
     cache.put(cacheKey, "sent", 60);
-    return responsePage(true, requestId);
+    return responsePage(true);
   } catch (error) {
     console.error("Could not send Luxe Interior enquiry", error);
-    return responsePage(false, requestId);
+    return responsePage(false);
   }
 }
 
@@ -180,13 +178,8 @@ function cleanLine(value, maxLength) {
     .slice(0, maxLength);
 }
 
-function responsePage(ok, requestId) {
-  const message = JSON.stringify({
-    type: "luxe-contact-result",
-    ok,
-    requestId,
-  });
+function responsePage(ok) {
   return HtmlService.createHtmlOutput(
-    `<script>window.parent.postMessage(${message}, "*");</script>`,
+    `<p>${ok ? "Enquiry submitted." : "Enquiry could not be submitted."}</p>`,
   ).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
