@@ -1,28 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const image = (id, width = 1800) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`;
 
-const projects = [
-  {
-    image: "photo-1600210492486-724fe5c67fb0",
-    title: "Rooms to slow down in",
-    detail: "LIVING · LAYERED NEUTRALS",
-    className: "project-card--tall",
-  },
-  {
-    image: "photo-1616486338812-3dadae4b4ace",
-    title: "A quieter kind of statement",
-    detail: "DETAIL · NATURAL TEXTURES",
-    className: "",
-  },
-  {
-    image: "photo-1600607687939-ce8a6c25118c",
-    title: "Made for every day",
-    detail: "HOME · CONSIDERED LIVING",
-    className: "project-card--wide",
-  },
-];
+const contactEndpoint = import.meta.env.VITE_CONTACT_FORM_ENDPOINT;
+const projectFolderUrl =
+  "https://drive.google.com/drive/folders/1pNh7bRbtobHXdwNppqSM55JDi9Zr0QD6";
+const projectEmbedUrl =
+  "https://drive.google.com/embeddedfolderview?id=1pNh7bRbtobHXdwNppqSM55JDi9Zr0QD6#grid";
 
 function ArrowIcon({ diagonal = false }) {
   return (
@@ -52,24 +37,47 @@ function Eyebrow({ children }) {
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [comparison, setComparison] = useState(52);
-  const [emailReady, setEmailReady] = useState(false);
+  const [formStatus, setFormStatus] = useState("idle");
+  const responseFrame = useRef(null);
+  const responseTimeout = useRef(null);
 
   const closeMenu = () => setMenuOpen(false);
 
-  const handleInquiry = (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const name = formData.get("name");
-    const email = formData.get("email");
-    const brief = formData.get("brief");
-    const subject = encodeURIComponent(`A new project enquiry from ${name}`);
-    const body = encodeURIComponent(
-      `Hello Luxe Interior,\n\n${brief}\n\nYou can reach me at ${email}.`,
-    );
+  useEffect(() => {
+    const handleFormResponse = (event) => {
+      if (
+        event.source !== responseFrame.current?.contentWindow ||
+        event.data?.type !== "luxe-contact-result"
+      ) {
+        return;
+      }
 
-    window.location.href = `mailto:hello@luxeinterior.com?subject=${subject}&body=${body}`;
-    setEmailReady(true);
+      window.clearTimeout(responseTimeout.current);
+      setFormStatus(event.data.ok ? "success" : "error");
+      if (event.data.ok) {
+        document.querySelector(".contact-form")?.reset();
+      }
+    };
+
+    window.addEventListener("message", handleFormResponse);
+    return () => {
+      window.removeEventListener("message", handleFormResponse);
+      window.clearTimeout(responseTimeout.current);
+    };
+  }, []);
+
+  const handleInquiry = (event) => {
+    if (!contactEndpoint || formStatus === "pending") {
+      event.preventDefault();
+      return;
+    }
+
+    setFormStatus("pending");
+    window.clearTimeout(responseTimeout.current);
+    responseTimeout.current = window.setTimeout(
+      () => setFormStatus("error"),
+      20000,
+    );
   };
 
   return (
@@ -111,7 +119,7 @@ function App() {
         >
           <a href="#approach" onClick={closeMenu}>Our approach</a>
           <a href="#work" onClick={closeMenu}>The work</a>
-          <a href="#transformation" onClick={closeMenu}>Before & after</a>
+          <a href="#work" onClick={closeMenu}>Projects</a>
           <a className="nav-cta" href="#contact" onClick={closeMenu}>
             Start a project <ArrowIcon diagonal />
           </a>
@@ -216,104 +224,41 @@ function App() {
             </p>
           </div>
 
-          <div className="project-grid">
-            {projects.map((project, index) => (
-              <article
-                className={`project-card ${project.className}`}
-                key={project.title}
-              >
-                <div className="project-image-wrap">
-                  <img
-                    alt={`Interior inspiration: ${project.title.toLowerCase()}`}
-                    className="project-image"
-                    loading="lazy"
-                    src={image(project.image)}
-                  />
-                  <span className="project-number">0{index + 1}</span>
-                  <a
-                    aria-label={`Discuss ${project.title}`}
-                    className="project-open"
-                    href="#contact"
-                  >
-                    <ArrowIcon diagonal />
-                  </a>
-                </div>
-                <div className="project-caption">
-                  <h3>{project.title}</h3>
-                  <span>{project.detail}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-          <p className="image-note">
-            IMAGERY SHOWN FOR INSPIRATION · YOUR PROJECT PHOTOGRAPHY GOES HERE
-          </p>
-        </section>
-
-        <section
-          aria-labelledby="transformation-title"
-          className="transformation"
-          id="transformation"
-        >
-          <div className="transformation-heading">
-            <div>
-              <Eyebrow>THE BEFORE IS JUST THE BEGINNING</Eyebrow>
-              <h2 id="transformation-title">
-                See what a little
-                <br />
-                <em>vision can do.</em>
-              </h2>
-            </div>
-            <p>
-              Every transformation starts with listening. Then we make the
-              details — and the whole picture — feel just right.
-            </p>
-          </div>
-          <div className="comparison">
-            <img
-              alt="Finished interior with warm, natural materials"
-              className="comparison-after"
-              draggable="false"
-              src={image("photo-1600607687920-4e2a09cf159d", 2000)}
-            />
-            <div
-              aria-hidden="true"
-              className="comparison-before"
-              style={{ clipPath: `inset(0 ${100 - comparison}% 0 0)` }}
-            >
-              <img
-                alt=""
-                draggable="false"
-                src={image("photo-1600210491369-e753d80a41f3", 2000)}
+          <div className="project-showcase">
+            <div className="project-folder">
+              <div className="project-folder-heading">
+                <span>01 — PANCHSHEEL PROJECT</span>
+                <a href={projectFolderUrl} rel="noreferrer" target="_blank">
+                  OPEN FOLDER <ArrowIcon diagonal />
+                </a>
+              </div>
+              <iframe
+                allow="autoplay"
+                className="project-folder-frame"
+                loading="lazy"
+                src={projectEmbedUrl}
+                title="Panchsheel Project photos in Google Drive"
               />
             </div>
-            <span className="comparison-label comparison-label--before">
-              BEFORE
-            </span>
-            <span className="comparison-label comparison-label--after">
-              AFTER
-            </span>
-            <div
-              aria-hidden="true"
-              className="comparison-handle"
-              style={{ left: `${comparison}%` }}
-            >
-              <span>↔</span>
+            <div className="project-story">
+              <Eyebrow>OUR WORK, AS IT TAKES SHAPE</Eyebrow>
+              <h3>A home, thoughtfully brought together.</h3>
+              <p>
+                Explore the Panchsheel Project photo folder. New photos added
+                to the shared Drive folder will appear here automatically.
+              </p>
+              <a
+                className="underlined-link"
+                href={projectFolderUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                View project photos <ArrowIcon diagonal />
+              </a>
+              <span className="project-folder-note">
+                PHOTOS ARE SHARED FROM GOOGLE DRIVE
+              </span>
             </div>
-            <input
-              aria-label="Drag to compare the before and after images"
-              className="comparison-slider"
-              max="100"
-              min="0"
-              onChange={(event) => setComparison(Number(event.target.value))}
-              type="range"
-              value={comparison}
-            />
-          </div>
-          <div className="comparison-foot">
-            <span>← DRAG TO REVEAL</span>
-            <span>IMAGERY SHOWN FOR INSPIRATION · SWAP IN YOUR BEFORE & AFTER PHOTOS</span>
-            <span>01 / 01</span>
           </div>
         </section>
 
@@ -369,7 +314,13 @@ function App() {
               </p>
               <span className="contact-mark">L · I</span>
             </div>
-            <form className="contact-form" onSubmit={handleInquiry}>
+            <form
+              action={contactEndpoint || undefined}
+              className="contact-form"
+              method="post"
+              onSubmit={handleInquiry}
+              target="luxe-contact-response"
+            >
               <label>
                 YOUR NAME
                 <input autoComplete="name" name="name" required type="text" />
@@ -392,20 +343,55 @@ function App() {
                   rows="3"
                 />
               </label>
-              <button className="button button--gold form-submit" type="submit">
-                Prepare your enquiry <ArrowIcon />
+              <label aria-hidden="true" className="form-trap">
+                Leave this field empty
+                <input autoComplete="off" name="website" tabIndex="-1" />
+              </label>
+              <button
+                className="button button--gold form-submit"
+                disabled={!contactEndpoint || formStatus === "pending"}
+                type="submit"
+              >
+                {formStatus === "pending" ? "Sending…" : "Send your enquiry"}
+                <ArrowIcon />
               </button>
-              {emailReady && (
+              {formStatus === "success" && (
                 <p className="form-status" role="status">
-                  Your email app should open with your enquiry ready. We look
-                  forward to hearing from you.
+                  Thank you — your enquiry has been sent. We’ll be in touch
+                  soon.
+                </p>
+              )}
+              {formStatus === "error" && (
+                <p className="form-status form-status--error" role="alert">
+                  We couldn’t send your enquiry. Please email{" "}
+                  <a href="mailto:luxeinterior03@gmail.com">
+                    luxeinterior03@gmail.com
+                  </a>{" "}
+                  directly.
+                </p>
+              )}
+              {!contactEndpoint && (
+                <p className="form-note form-note--setup" role="status">
+                  The enquiry form is being connected. For now, email{" "}
+                  <a href="mailto:luxeinterior03@gmail.com">
+                    luxeinterior03@gmail.com
+                  </a>
+                  .
                 </p>
               )}
               <p className="form-note">
-                YOUR EMAIL APP WILL OPEN WITH YOUR MESSAGE READY TO SEND.
+                YOUR DETAILS ARE SENT DIRECTLY TO LUXE INTERIOR.
               </p>
             </form>
           </div>
+          <iframe
+            aria-hidden="true"
+            className="submission-frame"
+            name="luxe-contact-response"
+            ref={responseFrame}
+            tabIndex="-1"
+            title="Contact form response"
+          />
         </section>
       </main>
 
@@ -427,7 +413,12 @@ function App() {
         <a className="back-to-top" href="#home">
           BACK TO TOP ↑
         </a>
-        <span className="copyright">© LUXE INTERIOR</span>
+        <span className="copyright">
+          © LUXE INTERIOR ·{" "}
+          <a href="mailto:luxeinterior03@gmail.com">
+            LUXEINTERIOR03@GMAIL.COM
+          </a>
+        </span>
       </footer>
     </>
   );
