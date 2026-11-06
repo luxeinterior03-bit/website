@@ -65,36 +65,112 @@
         min-width: 0;
       }
 
-      .pair-images {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2px;
-        overflow: hidden;
-        background: #27241e;
-      }
-
-      .pair figure {
+      .comparison {
         position: relative;
-        min-width: 0;
-        margin: 0;
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        background: #27241e;
+        isolation: isolate;
+        user-select: none;
       }
 
-      .pair img {
-        display: block;
-        width: 100%;
-        height: clamp(150px, 25vw, 340px);
-        object-fit: cover;
-      }
-
-      .pair figcaption {
+      .comparison-image,
+      .comparison-before,
+      .comparison-before img {
         position: absolute;
-        right: 10px;
-        bottom: 10px;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .comparison-image,
+      .comparison-before img {
+        display: block;
+        object-fit: cover;
+        pointer-events: none;
+      }
+
+      .comparison-before {
+        z-index: 1;
+        overflow: hidden;
+        clip-path: inset(0 calc(100% - var(--position)) 0 0);
+        pointer-events: none;
+      }
+
+      .comparison-handle {
+        position: absolute;
+        z-index: 2;
+        top: 0;
+        bottom: 0;
+        left: var(--position);
+        width: 1px;
+        background: #f5dcb3;
+        pointer-events: none;
+      }
+
+      .comparison-handle::after {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border: 1px solid #fff;
+        border-radius: 50%;
+        color: #11110f;
+        background: #e4bd7d;
+        content: "↔";
+        font-size: 19px;
+        transform: translate(-50%, -50%);
+      }
+
+      .comparison-label {
+        position: absolute;
+        z-index: 3;
+        top: 12px;
         padding: 7px 9px;
         color: #fff;
         background: rgb(17 17 15 / 72%);
         font-size: 10px;
         letter-spacing: 0.13em;
+        pointer-events: none;
+      }
+
+      .comparison-label--before {
+        left: 12px;
+      }
+
+      .comparison-label--after {
+        right: 12px;
+      }
+
+      .comparison-slider {
+        position: absolute;
+        z-index: 4;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        cursor: ew-resize;
+        opacity: 0;
+        touch-action: pan-y;
+      }
+
+      .comparison-slider:focus-visible {
+        outline: 2px solid #e4bd7d;
+        outline-offset: -3px;
+        opacity: 1;
+      }
+
+      .comparison-slider:focus-visible ~ .comparison-handle {
+        display: none;
+      }
+
+      .pair-hint {
+        margin: 9px 0 0;
+        color: #b7b0a4;
+        font-size: 11px;
       }
 
       .album-grid {
@@ -126,9 +202,6 @@
           grid-template-columns: 1fr;
         }
 
-        .pair img {
-          height: clamp(145px, 42vw, 240px);
-        }
       }
     </style>
   </head>
@@ -164,24 +237,40 @@
                   <? for (var i = 0; i < project.pairs.length; i++) {
                     var pair = project.pairs[i]; ?>
                     <article class="pair">
-                      <div class="pair-images">
-                        <figure>
+                      <div class="comparison" style="--position: 50%">
+                        <img
+                          alt="After the interior transformation"
+                          class="comparison-image"
+                          loading="lazy"
+                          src="<?= pair.after ?>"
+                        />
+                        <div aria-hidden="true" class="comparison-before">
                           <img
-                            alt="Before the interior transformation"
+                            alt=""
                             loading="lazy"
                             src="<?= pair.before ?>"
                           />
-                          <figcaption>BEFORE</figcaption>
-                        </figure>
-                        <figure>
-                          <img
-                            alt="After the interior transformation"
-                            loading="lazy"
-                            src="<?= pair.after ?>"
-                          />
-                          <figcaption>AFTER</figcaption>
-                        </figure>
+                        </div>
+                        <span class="comparison-label comparison-label--before">
+                          BEFORE
+                        </span>
+                        <span class="comparison-label comparison-label--after">
+                          AFTER
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          class="comparison-handle"
+                        ></span>
+                        <input
+                          aria-label="Drag to compare before and after photos"
+                          class="comparison-slider"
+                          max="100"
+                          min="0"
+                          type="range"
+                          value="50"
+                        />
                       </div>
+                      <p class="pair-hint">Drag to reveal the transformation</p>
                     </article>
                   <? } ?>
                 </div>
@@ -214,6 +303,15 @@
     <? } ?>
     <script>
       (() => {
+        document.querySelectorAll(".comparison-slider").forEach((slider) => {
+          slider.addEventListener("input", () => {
+            slider.parentElement.style.setProperty(
+              "--position",
+              `${slider.value}%`,
+            );
+          });
+        });
+
         const notifyParent = () => {
           window.parent.postMessage(
             {
