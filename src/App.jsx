@@ -39,9 +39,7 @@ function Eyebrow({ children }) {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState("idle");
-  const responseFrame = useRef(null);
   const galleryFrame = useRef(null);
-  const responseTimeout = useRef(null);
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -60,32 +58,16 @@ function App() {
     window.addEventListener("message", handleGalleryResize);
     return () => {
       window.removeEventListener("message", handleGalleryResize);
-      window.clearTimeout(responseTimeout.current);
     };
   }, []);
 
-  const handleInquiryResponse = () => {
-    if (formStatus !== "pending") {
-      return;
-    }
-
-    window.clearTimeout(responseTimeout.current);
-    setFormStatus("success");
-    document.querySelector(".contact-form")?.reset();
-  };
-
   const handleInquiry = (event) => {
-    if (!contactEndpoint || formStatus === "pending") {
+    if (!contactEndpoint) {
       event.preventDefault();
       return;
     }
 
-    setFormStatus("pending");
-    window.clearTimeout(responseTimeout.current);
-    responseTimeout.current = window.setTimeout(
-      () => setFormStatus("error"),
-      30000,
-    );
+    setFormStatus("submitted");
   };
 
   return (
@@ -328,7 +310,8 @@ function App() {
               className="contact-form"
               method="post"
               onSubmit={handleInquiry}
-              target="luxe-contact-response"
+              rel="noopener"
+              target="_blank"
             >
               <label>
                 YOUR NAME
@@ -359,25 +342,16 @@ function App() {
               </label>
               <button
                 className="button button--gold form-submit"
-                disabled={!contactEndpoint || formStatus === "pending"}
+                disabled={!contactEndpoint}
                 type="submit"
               >
-                {formStatus === "pending" ? "Sending…" : "Send your enquiry"}
+                Send your enquiry
                 <ArrowIcon />
               </button>
-              {formStatus === "success" && (
+              {formStatus === "submitted" && (
                 <p className="form-status" role="status">
-                  Thank you — your enquiry has been sent. We’ll be in touch
-                  soon.
-                </p>
-              )}
-              {formStatus === "error" && (
-                <p className="form-status form-status--error" role="alert">
-                  We couldn’t send your enquiry. Please email{" "}
-                  <a href="mailto:luxeinterior03@gmail.com">
-                    luxeinterior03@gmail.com
-                  </a>{" "}
-                  directly.
+                  Check the new tab for confirmation that your enquiry was
+                  sent. If no tab opened, allow pop-ups and try again.
                 </p>
               )}
               {!contactEndpoint && (
@@ -394,16 +368,6 @@ function App() {
               </p>
             </form>
           </div>
-          <iframe
-            aria-hidden="true"
-            className="submission-frame"
-            name="luxe-contact-response"
-            onLoad={handleInquiryResponse}
-            ref={responseFrame}
-            src="about:blank"
-            tabIndex="-1"
-            title="Contact form response"
-          />
         </section>
       </main>
 

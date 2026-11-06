@@ -790,10 +790,6 @@ textarea:focus-visible {
   letter-spacing: 0;
 }
 
-.form-status--error {
-  color: #e8a99d;
-}
-
 .form-status a,
 .form-note a {
   color: var(--gold-bright);
@@ -804,14 +800,6 @@ textarea:focus-visible {
 .form-note--setup {
   font-size: 10px;
   letter-spacing: 0;
-}
-
-.submission-frame {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  border: 0;
-  clip-path: inset(50%);
 }
 
 .site-footer {

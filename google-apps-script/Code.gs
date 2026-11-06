@@ -179,7 +179,44 @@ function cleanLine(value, maxLength) {
 }
 
 function responsePage(ok) {
-  return HtmlService.createHtmlOutput(
-    `<p>${ok ? "Enquiry submitted." : "Enquiry could not be submitted."}</p>`,
-  ).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  const title = ok ? "Enquiry received" : "Enquiry not sent";
+  const message = ok
+    ? "Thank you. Your enquiry has been emailed to Luxe Interior."
+    : "We could not send your enquiry. Please email luxeinterior03@gmail.com directly.";
+  const color = ok ? "#a9c98c" : "#e8a99d";
+
+  return HtmlService.createHtmlOutput(`<!doctype html>
+    <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>${title} | Luxe Interior</title>
+        <style>
+          body {
+            display: grid;
+            min-height: 100vh;
+            place-items: center;
+            margin: 0;
+            padding: 24px;
+            color: #eee9df;
+            background: #11110f;
+            font: 16px/1.7 Arial, sans-serif;
+          }
+          main { width: min(100%, 560px); }
+          h1 {
+            margin: 0 0 14px;
+            color: ${color};
+            font: 400 clamp(36px, 8vw, 56px)/1.1 Georgia, serif;
+          }
+          p { color: #b7b0a4; }
+          a { color: #e4bd7d; }
+        </style>
+      </head>
+      <body>
+        <main>
+          <h1>${title}</h1>
+          <p>${message}</p>
+          <p>You can close this tab and return to the website.</p>
+        </main>
+      </body>
+    </html>`).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }

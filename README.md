@@ -23,9 +23,10 @@ account:
    **New version**. Keep the same web app URL. Rebuild and redeploy the website
    after setting `.env.local`. Do not commit `.env.local`.
 
-The form submits directly to the script; the script emails each enquiry to the
-configured address. Until the endpoint is configured, the form stays disabled
-and shows the contact email as a fallback.
+The form submits directly to the script in a new tab. That tab confirms whether
+the email was sent; the website does not display a success message based only
+on the browser loading a response. Until the endpoint is configured, the form
+stays disabled and shows the contact email as a fallback.
 
 ## Site work photo gallery
 
