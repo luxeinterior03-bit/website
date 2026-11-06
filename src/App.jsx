@@ -42,6 +42,7 @@ function App() {
   const responseFrame = useRef(null);
   const galleryFrame = useRef(null);
   const responseTimeout = useRef(null);
+  const formRequestId = useRef(null);
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -57,22 +58,35 @@ function App() {
       }
     };
 
+    const handleFormResponse = (event) => {
+      const trustedOrigin =
+        event.origin === "https://script.google.com" ||
+        /^https:\/\/[^/]+-script\.googleusercontent\.com$/.test(event.origin);
+      if (
+        !trustedOrigin ||
+        event.data?.type !== "luxe-contact-result" ||
+        event.data?.requestId !== formRequestId.current ||
+        !formRequestId.current
+      ) {
+        return;
+      }
+
+      window.clearTimeout(responseTimeout.current);
+      formRequestId.current = null;
+      setFormStatus(event.data.ok ? "success" : "error");
+      if (event.data.ok) {
+        document.querySelector(".contact-form")?.reset();
+      }
+    };
+
     window.addEventListener("message", handleGalleryResize);
+    window.addEventListener("message", handleFormResponse);
     return () => {
       window.removeEventListener("message", handleGalleryResize);
+      window.removeEventListener("message", handleFormResponse);
       window.clearTimeout(responseTimeout.current);
     };
   }, []);
-
-  const handleInquiryResponse = () => {
-    if (formStatus !== "pending") {
-      return;
-    }
-
-    window.clearTimeout(responseTimeout.current);
-    setFormStatus("success");
-    document.querySelector(".contact-form")?.reset();
-  };
 
   const handleInquiry = (event) => {
     if (!contactEndpoint || formStatus === "pending") {
@@ -80,11 +94,14 @@ function App() {
       return;
     }
 
+    formRequestId.current = window.crypto.randomUUID();
+    event.currentTarget.elements.namedItem("requestId").value =
+      formRequestId.current;
     setFormStatus("pending");
     window.clearTimeout(responseTimeout.current);
     responseTimeout.current = window.setTimeout(
       () => setFormStatus("error"),
-      20000,
+      30000,
     );
   };
 
@@ -357,6 +374,7 @@ function App() {
                 Leave this field empty
                 <input autoComplete="off" name="website" tabIndex="-1" />
               </label>
+              <input name="requestId" type="hidden" />
               <button
                 className="button button--gold form-submit"
                 disabled={!contactEndpoint || formStatus === "pending"}
@@ -398,7 +416,6 @@ function App() {
             aria-hidden="true"
             className="submission-frame"
             name="luxe-contact-response"
-            onLoad={handleInquiryResponse}
             ref={responseFrame}
             tabIndex="-1"
             title="Contact form response"
