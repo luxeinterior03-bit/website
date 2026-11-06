@@ -179,8 +179,7 @@ function cleanLine(value, maxLength) {
 }
 
 function responsePage(ok) {
-  const message = JSON.stringify({ type: "luxe-contact-result", ok });
   return HtmlService.createHtmlOutput(
-    `<script>window.parent.postMessage(${message}, "*");</script>`,
+    `<p>${ok ? "Enquiry submitted." : "Enquiry could not be submitted."}</p>`,
   ).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }

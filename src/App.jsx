@@ -46,36 +46,33 @@ function App() {
   const closeMenu = () => setMenuOpen(false);
 
   useEffect(() => {
-    const handleFormResponse = (event) => {
-      if (event.source === galleryFrame.current?.contentWindow) {
-        if (
-          event.data?.type === "luxe-gallery-height" &&
-          Number.isFinite(event.data.height)
-        ) {
-          const height = Math.min(Math.max(event.data.height, 200), 30000);
-          galleryFrame.current.style.height = `${height}px`;
-        }
-        return;
-      }
-
+    const handleGalleryResize = (event) => {
       if (
-        event.source !== responseFrame.current?.contentWindow ||
-        event.data?.type !== "luxe-contact-result"
-      ) return;
-
-      window.clearTimeout(responseTimeout.current);
-      setFormStatus(event.data.ok ? "success" : "error");
-      if (event.data.ok) {
-        document.querySelector(".contact-form")?.reset();
+        event.source === galleryFrame.current?.contentWindow &&
+        event.data?.type === "luxe-gallery-height" &&
+        Number.isFinite(event.data.height)
+      ) {
+        const height = Math.min(Math.max(event.data.height, 200), 30000);
+        galleryFrame.current.style.height = `${height}px`;
       }
     };
 
-    window.addEventListener("message", handleFormResponse);
+    window.addEventListener("message", handleGalleryResize);
     return () => {
-      window.removeEventListener("message", handleFormResponse);
+      window.removeEventListener("message", handleGalleryResize);
       window.clearTimeout(responseTimeout.current);
     };
   }, []);
+
+  const handleInquiryResponse = () => {
+    if (formStatus !== "pending") {
+      return;
+    }
+
+    window.clearTimeout(responseTimeout.current);
+    setFormStatus("success");
+    document.querySelector(".contact-form")?.reset();
+  };
 
   const handleInquiry = (event) => {
     if (!contactEndpoint || formStatus === "pending") {
@@ -309,6 +306,21 @@ function App() {
                 A new home, a room ready for a rethink, or just a first idea —
                 we’d love to hear what you have in mind.
               </p>
+              <div className="contact-actions" aria-label="Contact us by phone">
+                <a className="contact-action" href="tel:+919917993855">
+                  <span>CALL US</span>
+                  <strong>+91 99179 93855</strong>
+                </a>
+                <a
+                  className="contact-action contact-action--whatsapp"
+                  href="https://wa.me/919917993855"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <span>WHATSAPP</span>
+                  <strong>Message us <ArrowIcon diagonal /></strong>
+                </a>
+              </div>
               <span className="contact-mark">L · I</span>
             </div>
             <form
@@ -334,6 +346,7 @@ function App() {
               <label>
                 A LITTLE ABOUT YOUR PROJECT
                 <textarea
+                  minLength="10"
                   name="brief"
                   placeholder="What are you dreaming up?"
                   required
@@ -385,6 +398,7 @@ function App() {
             aria-hidden="true"
             className="submission-frame"
             name="luxe-contact-response"
+            onLoad={handleInquiryResponse}
             ref={responseFrame}
             tabIndex="-1"
             title="Contact form response"
@@ -414,6 +428,16 @@ function App() {
           © LUXE INTERIOR ·{" "}
           <a href="mailto:luxeinterior03@gmail.com">
             LUXEINTERIOR03@GMAIL.COM
+          </a>
+          {" · "}
+          <a href="tel:+919917993855">+91 99179 93855</a>
+          {" · "}
+          <a
+            href="https://wa.me/919917993855"
+            rel="noreferrer"
+            target="_blank"
+          >
+            WHATSAPP
           </a>
         </span>
       </footer>

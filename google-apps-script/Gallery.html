@@ -18,11 +18,12 @@
 
       body {
         margin: 0;
-        padding: clamp(22px, 5vw, 64px);
+        padding: clamp(20px, 5vw, 64px);
+        overflow-wrap: break-word;
       }
 
       section + section {
-        margin-top: clamp(58px, 8vw, 104px);
+        margin-top: clamp(40px, 7vw, 88px);
       }
 
       .project-content > div + div {
@@ -55,14 +56,29 @@
         line-height: 1.8;
       }
 
-      .pair-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: clamp(14px, 2vw, 24px);
+      .gallery-carousel {
+        min-width: 0;
+      }
+
+      .gallery-track {
+        position: relative;
+        display: flex;
+        gap: clamp(12px, 2vw, 22px);
+        overflow-x: auto;
+        padding: 2px 2px 12px;
+        scroll-behavior: smooth;
+        scroll-snap-type: x mandatory;
+        scrollbar-color: #796545 #27241e;
+        scrollbar-width: thin;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
       }
 
       .pair {
+        flex: 0 0 min(72%, 680px);
         min-width: 0;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
       }
 
       .comparison {
@@ -173,18 +189,58 @@
         font-size: 11px;
       }
 
-      .album-grid {
-        columns: 3 220px;
-        column-gap: clamp(12px, 2vw, 24px);
+      .album-slide {
+        flex: 0 0 clamp(220px, 31vw, 380px);
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        background: #27241e;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
       }
 
-      .album-grid img {
+      .album-slide img {
         display: block;
         width: 100%;
-        height: auto;
-        margin: 0 0 clamp(12px, 2vw, 24px);
-        break-inside: avoid;
-        background: #27241e;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .gallery-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 10px;
+      }
+
+      .gallery-controls[hidden] {
+        display: none;
+      }
+
+      .gallery-arrow {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        border: 1px solid rgb(228 189 125 / 55%);
+        border-radius: 50%;
+        color: #e4bd7d;
+        background: transparent;
+        font: inherit;
+        font-size: 20px;
+        cursor: pointer;
+      }
+
+      .gallery-arrow:hover {
+        color: #11110f;
+        background: #e4bd7d;
+      }
+
+      .gallery-status {
+        min-width: 50px;
+        color: #b7b0a4;
+        font-size: 12px;
+        text-align: center;
       }
 
       .error {
@@ -195,13 +251,100 @@
 
       @media (max-width: 600px) {
         body {
-          padding: 24px 16px;
+          padding: 18px 14px 28px;
         }
 
-        .pair-grid {
-          grid-template-columns: 1fr;
+        section + section {
+          margin-top: 42px;
         }
 
+        .project-content > div + div {
+          margin-top: 36px;
+        }
+
+        .eyebrow {
+          margin-bottom: 10px;
+          font-size: 10px;
+          letter-spacing: 0.1em;
+        }
+
+        h1,
+        h2 {
+          font-size: clamp(32px, 9vw, 44px);
+          line-height: 1.08;
+          letter-spacing: -0.025em;
+        }
+
+        .section-note,
+        .empty-state {
+          margin: 12px 0 20px;
+          font-size: 15px;
+          line-height: 1.7;
+        }
+
+        .gallery-track {
+          gap: 12px;
+          margin-right: -14px;
+          padding-right: 14px;
+          scroll-padding-left: 2px;
+        }
+
+        .pair {
+          flex-basis: 88%;
+        }
+
+        .comparison {
+          aspect-ratio: 16 / 10;
+        }
+
+        .comparison-handle::after {
+          width: 36px;
+          height: 36px;
+          font-size: 17px;
+        }
+
+        .comparison-label {
+          top: 10px;
+          padding: 7px 9px;
+          font-size: 10px;
+          letter-spacing: 0.1em;
+        }
+
+        .pair-hint {
+          margin-top: 9px;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .album-slide {
+          flex-basis: 82%;
+        }
+
+        .gallery-controls {
+          justify-content: space-between;
+          margin-top: 8px;
+        }
+
+        .gallery-arrow {
+          width: 44px;
+          height: 44px;
+        }
+
+      }
+
+      @media (max-width: 360px) {
+        body {
+          padding-right: 10px;
+          padding-left: 10px;
+        }
+
+        .pair {
+          flex-basis: 94%;
+        }
+
+        .album-slide {
+          flex-basis: 88%;
+        }
       }
     </style>
   </head>
@@ -233,10 +376,25 @@
               <p class="eyebrow">The transformation</p>
               <h2>Before &amp; after</h2>
               <? if (project.pairs.length) { ?>
-                <div class="pair-grid">
+                <div
+                  aria-label="<?= project.name ?> before and after comparisons"
+                  class="gallery-carousel"
+                  data-carousel
+                  role="region"
+                >
+                  <div
+                    aria-label="Swipe to browse before and after comparisons"
+                    class="gallery-track"
+                    data-carousel-track
+                    tabindex="0"
+                  >
                   <? for (var i = 0; i < project.pairs.length; i++) {
                     var pair = project.pairs[i]; ?>
-                    <article class="pair">
+                    <article
+                      aria-label="<?= i + 1 ?> of <?= project.pairs.length ?>"
+                      class="pair"
+                      role="group"
+                    >
                       <div class="comparison" style="--position: 50%">
                         <img
                           alt="After the interior transformation"
@@ -273,6 +431,30 @@
                       <p class="pair-hint">Drag to reveal the transformation</p>
                     </article>
                   <? } ?>
+                  </div>
+                  <div class="gallery-controls" data-carousel-controls>
+                    <button
+                      aria-label="Previous comparison"
+                      class="gallery-arrow"
+                      data-carousel-prev
+                      type="button"
+                    >
+                      &larr;
+                    </button>
+                    <span
+                      aria-live="polite"
+                      class="gallery-status"
+                      data-carousel-status
+                    ></span>
+                    <button
+                      aria-label="Next comparison"
+                      class="gallery-arrow"
+                      data-carousel-next
+                      type="button"
+                    >
+                      &rarr;
+                    </button>
+                  </div>
                 </div>
               <? } else { ?>
                 <p class="empty-state">
@@ -284,14 +466,55 @@
             <div class="project-album">
               <p class="eyebrow"><?= project.name ?> · Album</p>
               <? if (project.album.length) { ?>
-                <div class="album-grid">
+                <div
+                  aria-label="<?= project.name ?> photo album"
+                  class="gallery-carousel"
+                  data-carousel
+                  role="region"
+                >
+                  <div
+                    aria-label="Swipe to browse project photos"
+                    class="gallery-track"
+                    data-carousel-track
+                    tabindex="0"
+                  >
                   <? for (var j = 0; j < project.album.length; j++) { ?>
-                    <img
-                      alt="<?= project.name ?> interior photo"
-                      loading="lazy"
-                      src="<?= project.album[j] ?>"
-                    />
+                    <div
+                      aria-label="<?= j + 1 ?> of <?= project.album.length ?>"
+                      class="album-slide"
+                      role="group"
+                    >
+                      <img
+                        alt="<?= project.name ?> interior photo"
+                        loading="lazy"
+                        src="<?= project.album[j] ?>"
+                      />
+                    </div>
                   <? } ?>
+                  </div>
+                  <div class="gallery-controls" data-carousel-controls>
+                    <button
+                      aria-label="Previous album photo"
+                      class="gallery-arrow"
+                      data-carousel-prev
+                      type="button"
+                    >
+                      &larr;
+                    </button>
+                    <span
+                      aria-live="polite"
+                      class="gallery-status"
+                      data-carousel-status
+                    ></span>
+                    <button
+                      aria-label="Next album photo"
+                      class="gallery-arrow"
+                      data-carousel-next
+                      type="button"
+                    >
+                      &rarr;
+                    </button>
+                  </div>
                 </div>
               <? } else { ?>
                 <p class="empty-state">Project album photos will appear here.</p>
@@ -303,6 +526,92 @@
     <? } ?>
     <script>
       (() => {
+        const reducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+
+        document.querySelectorAll("[data-carousel]").forEach((carousel) => {
+          const track = carousel.querySelector("[data-carousel-track]");
+          const slides = Array.from(track.children);
+          const controls = carousel.querySelector("[data-carousel-controls]");
+          const status = carousel.querySelector("[data-carousel-status]");
+          let currentIndex = 0;
+          let timer;
+
+          if (slides.length < 2) {
+            controls.hidden = true;
+            return;
+          }
+
+          const updateStatus = () => {
+            const trackLeft = track.getBoundingClientRect().left + track.clientLeft;
+            currentIndex = slides.reduce(
+              (closestIndex, slide, index) => {
+                const currentDistance = Math.abs(
+                  slide.getBoundingClientRect().left - trackLeft,
+                );
+                const closestDistance = Math.abs(
+                  slides[closestIndex].getBoundingClientRect().left - trackLeft,
+                );
+                return currentDistance < closestDistance ? index : closestIndex;
+              },
+              0,
+            );
+            status.textContent = `${currentIndex + 1} / ${slides.length}`;
+          };
+
+          const goTo = (index) => {
+            currentIndex = (index + slides.length) % slides.length;
+            track.scrollTo({
+              left: slides[currentIndex].offsetLeft - slides[0].offsetLeft,
+              behavior: reducedMotion ? "auto" : "smooth",
+            });
+            status.textContent = `${currentIndex + 1} / ${slides.length}`;
+          };
+
+          const stopAutoSlide = () => window.clearInterval(timer);
+          const startAutoSlide = () => {
+            stopAutoSlide();
+            if (!reducedMotion && !document.hidden) {
+              timer = window.setInterval(
+                () => goTo(currentIndex + 1),
+                5000,
+              );
+            }
+          };
+
+          carousel
+            .querySelector("[data-carousel-prev]")
+            .addEventListener("click", () => {
+              goTo(currentIndex - 1);
+              startAutoSlide();
+            });
+          carousel
+            .querySelector("[data-carousel-next]")
+            .addEventListener("click", () => {
+              goTo(currentIndex + 1);
+              startAutoSlide();
+            });
+          track.addEventListener("scroll", updateStatus, { passive: true });
+          carousel.addEventListener("pointerenter", stopAutoSlide);
+          carousel.addEventListener("pointerleave", startAutoSlide);
+          carousel.addEventListener("focusin", stopAutoSlide);
+          carousel.addEventListener("focusout", (event) => {
+            if (!carousel.contains(event.relatedTarget)) {
+              startAutoSlide();
+            }
+          });
+          carousel.addEventListener("touchstart", stopAutoSlide, {
+            passive: true,
+          });
+          carousel.addEventListener("touchend", startAutoSlide, {
+            passive: true,
+          });
+          document.addEventListener("visibilitychange", startAutoSlide);
+          updateStatus();
+          startAutoSlide();
+        });
+
         document.querySelectorAll(".comparison-slider").forEach((slider) => {
           slider.addEventListener("input", () => {
             slider.parentElement.style.setProperty(

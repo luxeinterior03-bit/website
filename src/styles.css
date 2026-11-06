@@ -653,6 +653,50 @@ textarea:focus-visible {
   margin-top: 25px;
 }
 
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.contact-action {
+  display: flex;
+  min-width: 178px;
+  min-height: 64px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule);
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.contact-action:hover {
+  border-color: var(--gold);
+  background: rgba(201, 156, 90, 0.06);
+}
+
+.contact-action > span {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.contact-action > strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold-bright);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.contact-action--whatsapp > strong {
+  color: #a9c98c;
+}
+
 .contact-mark {
   display: inline-block;
   margin-top: 55px;
@@ -1228,6 +1272,26 @@ textarea:focus-visible {
 
   .contact-copy > p {
     margin-top: 20px;
+  }
+
+  .contact-actions {
+    gap: 9px;
+    margin-top: 20px;
+  }
+
+  .contact-action {
+    min-width: min(164px, calc(50% - 5px));
+    min-height: 62px;
+    flex: 1;
+    padding: 9px 10px;
+  }
+
+  .contact-action > span {
+    font-size: 9px;
+  }
+
+  .contact-action > strong {
+    font-size: 11px;
   }
 
   .contact-mark {

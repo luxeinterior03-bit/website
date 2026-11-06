@@ -42,8 +42,10 @@ Upload matching before/after photos to their respective folders, using the
 same base name for each pair (for example, `living-room-before.jpg` and
 `living-room-after.jpg`). Matching filenames are only used to pair the photos;
 they are never shown on the website. Add the rest of the project photos to
-`Album`; they appear in a filename-free collage. Project folder names appear as
-gallery headings.
+`Album`; they appear in a filename-free, swipeable photo carousel. Before/after
+pairs and album photos support horizontal scrolling, with next/previous
+controls and automatic sliding when multiple images are available. Project
+folder names appear as gallery headings.
 
 The Apps Script web app supports both layouts and discovers project folders
 automatically. Put photos inside the matching category folder; files left
