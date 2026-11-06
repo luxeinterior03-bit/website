@@ -5,9 +5,10 @@ const image = (id, width = 1800) =>
 
 const contactEndpoint = import.meta.env.VITE_CONTACT_FORM_ENDPOINT;
 const projectFolderUrl =
-  "https://drive.google.com/drive/folders/1pNh7bRbtobHXdwNppqSM55JDi9Zr0QD6";
-const projectEmbedUrl =
-  "https://drive.google.com/embeddedfolderview?id=1pNh7bRbtobHXdwNppqSM55JDi9Zr0QD6#grid";
+  "https://drive.google.com/drive/folders/1-KT5nFIEZJIluCKAf7A_ZIi41yIocjmr";
+const projectGalleryUrl = contactEndpoint
+  ? `${contactEndpoint}?view=gallery`
+  : null;
 
 function ArrowIcon({ diagonal = false }) {
   return (
@@ -39,18 +40,28 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState("idle");
   const responseFrame = useRef(null);
+  const galleryFrame = useRef(null);
   const responseTimeout = useRef(null);
 
   const closeMenu = () => setMenuOpen(false);
 
   useEffect(() => {
     const handleFormResponse = (event) => {
+      if (event.source === galleryFrame.current?.contentWindow) {
+        if (
+          event.data?.type === "luxe-gallery-height" &&
+          Number.isFinite(event.data.height)
+        ) {
+          const height = Math.min(Math.max(event.data.height, 200), 30000);
+          galleryFrame.current.style.height = `${height}px`;
+        }
+        return;
+      }
+
       if (
         event.source !== responseFrame.current?.contentWindow ||
         event.data?.type !== "luxe-contact-result"
-      ) {
-        return;
-      }
+      ) return;
 
       window.clearTimeout(responseTimeout.current);
       setFormStatus(event.data.ok ? "success" : "error");
@@ -224,41 +235,27 @@ function App() {
             </p>
           </div>
 
-          <div className="project-showcase">
-            <div className="project-folder">
-              <div className="project-folder-heading">
-                <span>01 — PANCHSHEEL PROJECT</span>
+          <div className="project-gallery">
+            {projectGalleryUrl ? (
+              <iframe
+                className="project-gallery-frame"
+                loading="lazy"
+                ref={galleryFrame}
+                src={projectGalleryUrl}
+                title="Site work projects, before and after photos, and albums"
+              />
+            ) : (
+              <div className="project-gallery-setup">
+                <Eyebrow>THE PANCHSHEEL PROJECT</Eyebrow>
+                <p>
+                  The photo album will appear here once the Google photo
+                  gallery is connected.
+                </p>
                 <a href={projectFolderUrl} rel="noreferrer" target="_blank">
-                  OPEN FOLDER <ArrowIcon diagonal />
+                  Open the project folder <ArrowIcon diagonal />
                 </a>
               </div>
-              <iframe
-                allow="autoplay"
-                className="project-folder-frame"
-                loading="lazy"
-                src={projectEmbedUrl}
-                title="Panchsheel Project photos in Google Drive"
-              />
-            </div>
-            <div className="project-story">
-              <Eyebrow>OUR WORK, AS IT TAKES SHAPE</Eyebrow>
-              <h3>A home, thoughtfully brought together.</h3>
-              <p>
-                Explore the Panchsheel Project photo folder. New photos added
-                to the shared Drive folder will appear here automatically.
-              </p>
-              <a
-                className="underlined-link"
-                href={projectFolderUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                View project photos <ArrowIcon diagonal />
-              </a>
-              <span className="project-folder-note">
-                PHOTOS ARE SHARED FROM GOOGLE DRIVE
-              </span>
-            </div>
+            )}
           </div>
         </section>
 
