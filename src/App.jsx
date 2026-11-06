@@ -39,7 +39,6 @@ function Eyebrow({ children }) {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState("idle");
-  const [responseFrameReady, setResponseFrameReady] = useState(false);
   const responseFrame = useRef(null);
   const galleryFrame = useRef(null);
   const responseTimeout = useRef(null);
@@ -66,11 +65,6 @@ function App() {
   }, []);
 
   const handleInquiryResponse = () => {
-    if (!responseFrameReady) {
-      setResponseFrameReady(true);
-      return;
-    }
-
     if (formStatus !== "pending") {
       return;
     }
@@ -81,7 +75,7 @@ function App() {
   };
 
   const handleInquiry = (event) => {
-    if (!contactEndpoint || !responseFrameReady || formStatus === "pending") {
+    if (!contactEndpoint || formStatus === "pending") {
       event.preventDefault();
       return;
     }
@@ -365,11 +359,7 @@ function App() {
               </label>
               <button
                 className="button button--gold form-submit"
-                disabled={
-                  !contactEndpoint ||
-                  !responseFrameReady ||
-                  formStatus === "pending"
-                }
+                disabled={!contactEndpoint || formStatus === "pending"}
                 type="submit"
               >
                 {formStatus === "pending" ? "Sending…" : "Send your enquiry"}
