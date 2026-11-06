@@ -318,12 +318,16 @@ function App() {
                 <input autoComplete="name" name="name" required type="text" />
               </label>
               <label>
-                EMAIL ADDRESS
+                10-DIGIT CONTACT NUMBER
                 <input
-                  autoComplete="email"
-                  name="email"
+                  autoComplete="tel"
+                  inputMode="numeric"
+                  maxLength="10"
+                  name="phone"
+                  pattern="[0-9]{10}"
+                  title="Enter a 10-digit phone number without spaces or country code."
                   required
-                  type="email"
+                  type="tel"
                 />
               </label>
               <label>
@@ -356,11 +360,8 @@ function App() {
               )}
               {!contactEndpoint && (
                 <p className="form-note form-note--setup" role="status">
-                  The enquiry form is being connected. For now, email{" "}
-                  <a href="mailto:luxeinterior03@gmail.com">
-                    luxeinterior03@gmail.com
-                  </a>
-                  .
+                  The enquiry form is being connected. For now, call{" "}
+                  <a href="tel:+919917993855">+91 99179 93855</a>.
                 </p>
               )}
               <p className="form-note">

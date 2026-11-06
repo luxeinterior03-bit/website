@@ -23,10 +23,12 @@ account:
    **New version**. Keep the same web app URL. Rebuild and redeploy the website
    after setting `.env.local`. Do not commit `.env.local`.
 
-The form submits directly to the script in a new tab. That tab confirms whether
-the email was sent; the website does not display a success message based only
-on the browser loading a response. Until the endpoint is configured, the form
-stays disabled and shows the contact email as a fallback.
+Visitors provide their name, 10-digit phone number, and project details; they
+do not need to provide an email address. The script emails the enquiry,
+including the visitor's phone number, to `luxeinterior03@gmail.com`. The form
+submits directly to the script in a new tab, which confirms whether the email
+was sent. Until the endpoint is configured, the form stays disabled and shows
+the phone number as a fallback.
 
 ## Site work photo gallery
 
